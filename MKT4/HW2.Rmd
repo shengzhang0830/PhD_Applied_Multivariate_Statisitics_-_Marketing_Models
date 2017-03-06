@@ -1,0 +1,112 @@
+---
+title: "HW2"
+author: "Sheng Zhang"
+date: "October 25, 2016"
+output: pdf_document
+---
+
+
+
+```{part 2-4, echo=TRUE}
+
+#data <- read.csv("mixturePoisson.csv")
+head(data)
+summary(data)
+hist(data$Price)
+
+id <-data[,1] ; xmat <-as.matrix(cbind(1, data[,3])) ; y <- as.vector(data[,2])
+
+npar<-2 ; parms <-runif(npar)
+
+logLik<-function(parms, y, xmat, id){
+  
+  xbeta<-xmat%*%parms[1:2]
+  
+  ll<-0.0
+  
+  lamda <- exp(xbeta)
+    
+  ll<-ll+sum(dpois(y,lamda,log=TRUE))
+
+  print(-ll)
+  return(-ll)
+}
+
+mle1<-nlm(logLik,  parms, y=y, xmat=xmat, id=id, hessian=T)
+
+# calculating the Hessian to obtain stdev
+mode = mle1$estimate                 # output parameter estimates
+SE = sqrt(diag(solve(mle1$hessian)))      # output parameter SEs
+Tvalue = mode/SE                          # output parameter T-values
+ll = mle1$minimum                         # -2*log-likelihood
+A1<-cbind(Estimate=mode,SE=SE,Tvalue=Tvalue,ll=ll)
+A1
+
+BIC1 <- ll-2*log(dim(data)[1])/2
+BIC1
+
+```
+
+2)
+Please see the R code above.
+
+3)
+As shown from the output above, the intercept parameter is 1.027, while the parameter for price is -0.563. The standard error for the intercept is 0.068, while the standard error for the parameter for price is 0.105.
+
+4)
+-0.563 means that for each unit increase in price, the sales volume, on average, decreases by 0.563 units. The intercept may not be meaningful to interpret because no zero price data point exists.
+
+
+
+```{part 5-6, echo=TRUE}
+# data <- read.csv("mixturePoisson.csv")
+y <- as.vector(data[,2])
+
+id <-data[,1] ; xmat <-as.matrix(data[,3])
+
+npar<-5 ; parms <-runif(npar)
+
+logLik<-function(parms, y, xmat, id){
+    
+    wt<-exp(parms[5])/(1+exp(parms[5]))
+    
+    xbeta1<-exp(parms[1]+xmat*parms[2]);  xbeta2<-exp(parms[3]+xmat*parms[4])
+    
+    ll<-0.0
+    
+    for(i in 1:max(id)){
+        
+        sxbeta1<-subset(xbeta1, id==i); sxbeta2<-subset(xbeta2, id==i)
+        
+        sy<-subset(y, id==i)
+        
+        sum1<-sum(dpois(sy, lambda = sxbeta1, log = TRUE))
+        sum2<-sum(dpois(sy, lambda = sxbeta2, log = TRUE))
+        
+        ws1 <- sum1+log(wt) ;  ws2 <- sum2+log(1-wt)
+        
+        m=max(ws1, ws2)
+        
+        ll<-ll+m+log(exp(ws1-m)+exp(ws2-m))
+    }
+    -ll
+    print(-ll)
+}
+
+mle1<-nlm(logLik, parms, y=y, xmat=xmat, id=id, hessian=T)
+
+mode = mle1$estimate                
+SE = sqrt(diag(solve(mle1$hessian)))      
+Tvalue = mode/SE                          
+ll = mle1$minimum                         
+A1<-cbind(Estimate=mode,SE=SE,Tvalue=Tvalue,ll=ll)
+A1
+
+BIC2 <- ll-5*log(dim(data)[1])/2
+BIC2
+```
+
+5) Please see R output.
+
+6) As shown, the BIC for the first model is 4153.91, while the BIC for the second model is 4031.87. Therefore, the first model is better if we only use BIC as a benchmark.
+

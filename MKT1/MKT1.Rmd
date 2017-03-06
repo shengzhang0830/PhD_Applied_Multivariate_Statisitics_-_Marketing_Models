@@ -1,0 +1,121 @@
+---
+title: "Marketing Models - HW#1"
+author: "Sheng Zhang"
+date: "September 22, 2016"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Q1
+Please refer to the attached handwritten sheet.
+
+## Q2
+
+```{r Q2}
+library("evd")
+randGumbel <- rgumbel(1050, loc=1, scale=1.2)
+summary(randGumbel)
+var(randGumbel)
+
+hist(randGumbel)
+```
+
+## Q3
+Please refer to the attached handwritten sheet.
+
+## Q4(a)
+
+```{r Q4a, echo=TRUE, warning=FALSE}
+library("maxLik")
+tuna <- read.csv("./tunacalib.csv")
+head(tuna)
+summary(tuna)
+counts <- table(tuna$brand)
+counts
+barplot(counts, main="Distribution of Brands",xlab="Brand Id",col="goldenrod1")
+nbrands <- length(counts)
+y <- tuna$brand
+delta <- matrix(0.0,nrow=nrow(tuna),ncol=nbrands)
+
+for (i in 1:nrow(tuna))
+{
+  col<-y[i]
+  delta[i,col]<-1
+}
+
+xmat <- as.matrix(tuna[,4:18])
+nparms <- 7
+parms <- runif(nparms)
+
+logLik <- function(parms, delta, xmat)
+{
+  v1 <- parms[5]*xmat[,1]+parms[6]*xmat[,2]+parms[7]*xmat[,3]
+  v2 <- parms[1]+parms[5]*xmat[,4]+parms[6]*xmat[,5]+parms[7]*xmat[,6]
+  v3 <- parms[2]+parms[5]*xmat[,7]+parms[6]*xmat[,8]+parms[7]*xmat[,9]
+  v4 <- parms[3]+parms[5]*xmat[,10]+parms[6]*xmat[,11]+parms[7]*xmat[,12]
+  v5 <- parms[4]+parms[5]*xmat[,13]+parms[6]*xmat[,14]+parms[7]*xmat[,15]
+  lden <- log(exp(v1)+exp(v2)+exp(v3)+exp(v4)+exp(v5))
+  return(sum(v1*delta[,1]+v2*delta[,2]+v3*delta[,3]+v4*delta[,4]+v5*delta[,5]-lden))  
+  # why -lden: ln((e^a)/b)= a - lnb
+  # ensures that we are only using vi of the chosen brand
+}
+
+mlfit <- maxLik(logLik, start=c(Int2=parms[1],Int3=parms[2],Int4=parms[3],Int5=parms[4],
+                      Price=parms[5],Feature=parms[6],Display=parms[7]), delta=delta, xmat=xmat)
+print(summary(mlfit))
+
+```
+
+## Q4(b)&(c)
+```{r Q4bc, echo=TRUE, warning=FALSE}
+newparms <- mlfit$estimate
+v1 <- as.matrix(tuna[4:6])%*%as.matrix(newparms[5:7])
+v2 <- as.matrix(tuna[7:9])%*%as.matrix(newparms[5:7]) + newparms[1]
+v3 <- as.matrix(tuna[10:12])%*%as.matrix(newparms[5:7]) + newparms[2]
+v4 <- as.matrix(tuna[13:15])%*%as.matrix(newparms[5:7]) + newparms[3]
+v5 <- as.matrix(tuna[16:18])%*%as.matrix(newparms[5:7]) + newparms[4]
+
+choiceProb <- function(vi)
+{
+  pi <- exp(vi)/(exp(v1)+exp(v2)+exp(v3)+exp(v4)+exp(v5))
+  return(pi)
+}
+
+P1 <- choiceProb(v1)
+P2 <- choiceProb(v2)
+P3 <- choiceProb(v3)
+P4 <- choiceProb(v4)
+P5 <- choiceProb(v5)
+P <- cbind(P1,P2,P3,P4,P5)
+Q <- t(rep(1,5)%*%t(rep(1,nrow(tuna)))) - P
+PChosen <- (as.matrix(P)*as.matrix(delta))%*%rep(1,5)
+
+Z <- cbind(tuna$p1,tuna$p2,tuna$p3,tuna$p4,tuna$p5)
+ZChosen <- (as.matrix(Z)*as.matrix(delta))%*%rep(1,5)
+
+PED <- ((t(Q*Z)%*%rep(1,nrow(tuna)))/nrow(tuna))*newparms[5]
+XED <- ((t(P*Z)%*%rep(1,nrow(tuna)))/nrow(tuna))*newparms[5]*(-1)
+
+E <- matrix(rep(0,25),nrow=5,ncol=5)
+for(i in 1:5){
+  for(j in 1:5){
+    if(i==j){
+      E[i,i] <- PED[i]
+    } else {
+      E[i,j] <- XED[i]
+    }
+  }
+}
+E
+```
+  The row of the matrix E is indexed by i, whereas the the column of the matrix is indexed by j. Therefore, the diagonal entries of E represent the 5 own price-elasticities, whereas Eij represents the cross price elasticity of i in regard to an alternative j. For example, for brand 1 tuna, the own price elasticity is about -4.97, which indicates that, on average, a 1% increase in the price of brand 1 tuna, the demand of it decreases by -4.97%.
+  
+  For cross price elasticities, we can see that for all brands i, the cross price elasticities with regard to, for instance, brand 1, are the same. This is because a change in an attribute of alternative j changes the probabilities for all other alternatives by the same percent. For example, a 1% increase in the price of brand 1 tuna increases the demand for brands 2/3/4/5 tuna by about 2.29%.
+
+
+## Q5
+
+  First of all, wifes on average prefer brand 2 more than brand 1 (from the number 1.3), while husbands prefer brand 1 over brand 2 (form the number -1.5). Similarly, we can conclude that, on average, wifes prefer brand 1 over brand 3 (from the number -1.45), while husbands prefer brand 3 over brand 1 (from the number 1.2). Finally, an increase in price decreases the demand for the associated brand for both husbands and wifes. If we assume wifes and husbands have similar variance on their utility distributions, then, on average, husbands are more price sensitive than wifes are (from the fact that abs(-3.7) > abs(-3)).  

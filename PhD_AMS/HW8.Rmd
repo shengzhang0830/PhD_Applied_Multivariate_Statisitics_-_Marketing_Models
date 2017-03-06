@@ -1,0 +1,29 @@
+---
+title: "HW8"
+author: "Sheng Zhang"
+date: "November 23, 2016"
+output: html_document
+---
+
+
+```{r Q1, echo=TRUE}
+T84 <- read.table("./Fall 2016/Applied Multivariate Statistics/Wichern_data/T8-4.DAT")
+cov(T84)
+T84_PCA <- prcomp(T84,center=FALSE,scale. = FALSE)
+T84_PCA
+summary(T84_PCA)
+eigenvalues <- T84_PCA$sdev*T84_PCA$sdev
+eigenvalues
+```
+a) The covariance matrix is computed from the cov() function, and the sample principle components are computed from the prcomp function.
+
+b) The proportion explained by the first three principle components are 89.968%. The first factor may capture the performance of the whole economy, while the second factor may capture the performance of each industry.
+
+c) According to the formula in 8-33, The 90% confidence interval for the first three eigenvalues are (0.00106, 0.00195), (0.00054, 0.00100), and (0.00019, 0.00036) respectively.
+
+d) Since 80.286% of the variance is already captured by the first two factors, perhaps including two factors is sufficient.
+
+
+
+
+

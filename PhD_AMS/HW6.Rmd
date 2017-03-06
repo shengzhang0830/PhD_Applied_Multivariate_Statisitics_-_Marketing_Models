@@ -1,0 +1,104 @@
+---
+title: "HW5"
+author: "Sheng Zhang"
+date: "October 6, 2016"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 1
+```{r Q1, echo=TRUE}
+y <- matrix(c(2,6,5,4,7,9,8,6,8,10,12,14),nrow=12,ncol=1)
+w <- matrix(c(0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1),nrow=12,ncol=3)
+# Anova
+mean(y);mean(y[1:3]);mean(y[4:7]);mean(y[8:10]);mean(y[11:12])
+SStr <- sum(3*(mean(y[1:3])-mean(y))^2,4*(mean(y[4:7])-mean(y))^2,3*(mean(y[8:10])-mean(y))^2,2*(mean(y[11:12]-mean(y)))^2)
+SSres <- sum((y[1:3]-mean(y[1:3]))^2,(y[4:7]-mean(y[4:7]))^2,(y[8:10]-mean(y[8:10]))^2,(y[11:12]-mean(y[11:12]))^2)
+F <- (SStr/3)/(SSres/8)
+qf(0.95,3,8)
+# Anova 2nd way
+Q1 <- data.frame(Y=y, W=factor(c(1,1,1,2,2,2,2,3,3,3,4,4)))
+anova <- aov(y~W, data=Q1)
+summary(anova)
+W <- factor(c(1,1,1,2,2,2,2,3,3,3,4,4))
+pairwise.t.test(y,W,p.adj="bonf")
+pairwise.t.test(y,W,p.adj="none")
+# Dummy regression
+Q1_reg <- lm(y~w)
+summary(Q1_reg)
+# Dummy regression for part d)
+w2 <- matrix(c(2,2,2,3,3,3,3,2,2,2,2,2,2,2,2,2,2,2,2,3,3,3,2,2,2,2,2,2,2,2,2,2,2,2,3,3),nrow=12,ncol=3)
+Q1_reg2 <- lm(y~w2)
+summary(Q1_reg)
+```
+
+
+## Problem 2
+```{r Q2, echo=TRUE}
+# One-way ANOVA
+SSres <- 16.4706+21.556+30.9767+33.2174+53.7538
+total_mean <- (1.53*34 + 1.89*36 + 1.98*43 + 2.13*46 + 2.14*65)/224
+SStr <- ((1.53-total_mean)^2)*34 + ((1.89-total_mean)^2)*36 + ((1.98-total_mean)^2)*43 + ((2.13-total_mean)^2)*46 + ((2.14-total_mean)^2)*65
+F <- (SStr/4)/(SSres/219)
+mse <- SSres/219
+F_crit <- qf(0.95,4,219)
+# Post-hoc t-test with Bonferroni correction
+group_sse <- c(16.4706,21.556,30.9767,33.2174,53.7538)
+group_size <- c(34,36,43,46,65)
+group_mean <- c(1.53,1.89,1.98,2.13,2.14)
+t_bonf <- matrix(rep(0,25),nrow=5,ncol=5)
+for(i in 1:5){
+  for(j in 1:5){
+    t_bonf[i,j] <- (group_mean[i]-group_mean[j])/sqrt(mse*((1/group_size[i])+(1/group_size[j])))
+  }
+}
+t_bonf
+qt((1-0.05/10),219)
+
+# Scheffe's Test
+comparison_values <- matrix(rep(0,25),nrow=5,ncol=5)
+for(i in 1:5){
+  for(j in 1:5){
+    comparison_values[i,j] <- sqrt(4*F_crit*mse*((1/group_size[i])+(1/group_size[j])))
+  }
+}
+comparison_values
+mean_diff <- matrix(rep(0,25),nrow=5,ncol=5)
+for(i in 1:5){
+  for(j in 1:5){
+    mean_diff[i,j] <- (group_mean[i]-group_mean[j])
+  }
+}
+mean_diff
+scheffe <- abs(mean_diff) > comparison_values
+scheffe
+```
+
+b)
+As calculated by R, the critical value of t is about 2.598 under Bonferonni adjustment. Based on the t_bonf matrix, the pairwise t-statistic is greater than 2.598 only for pair (1,4) and (1,5). This means that, if we use Bonferonni t-test, only the mean differences between A and D and between A and E are statistically significant. 
+
+c)
+For testing difference of differences: First, we compute the covariance matrix (5*5) for A,B,C,D,E. However, we do NOT have the sufficient information to compute the covariance matrix. Then we construct a contrast matrix (15*5) that only keeps track of meaningful mean differences. Then we use csc' to compute a new covariance matrix for the meaningful mean differences. What is useful from this csc' matrix is the diagonal entries, because we want the standard error for each difference between the mean differences (eg. AE - BD). Then we use the differences of mean differences (eg. AE - BD) and their standard error to calculate 15 t-values. Then we can test the significance.
+
+For testing whether each group differs from all others, we need the variance of, for example, group pooled from B,C,D,E. We do NOT have that information either.
+
+I could not come up with any other interpretation.
+
+d)
+The pair that has the greatest contrast is (1,2), with the contrast at about 0.627. Since the formula comparison_values[i,j] <- sqrt(4*F_crit*mse*((1/group_size[i])+(1/group_size[j]))) contains F_crit, its square is indeed proportional to F_crit.
+
+As shown from the scheffe Boolean matrix, the mean differences are greater than the comparison values only for pairs (1,4) and (1,5). This means that, if we use Scheffe, only the mean differences between A and D and between A and E are statistically significant. So Bonferonni and Scheffe yield the same results.
+
+
+## Problem 3
+```{r Q3, echo=TRUE}
+Q3 <- read.csv("./HW5 - Q3.csv")
+anova_Q3 <- aov(Q3$Mean.offspring.weights~Q3$Female*Q3$Male)
+summary(anova_Q3)
+with(Q3,interaction.plot(x.factor = Female, trace.factor = Male, response = Mean.offspring.weights,fun = mean, type = "b", legend = 1, ylab = "Mean Offspring Weights", main = "Interaction Plot"))
+```
+
+So only the main effect of female is significant.

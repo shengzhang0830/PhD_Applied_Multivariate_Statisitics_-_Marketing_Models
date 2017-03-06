@@ -1,0 +1,28 @@
+    beta[1]         beta[2]             beta[3]        
+ Min.   :3.825   Min.   :-0.003794   Min.   :-0.03978  
+ 1st Qu.:4.791   1st Qu.: 0.097328   1st Qu.:-0.02099  
+ Median :4.998   Median : 0.125867   Median :-0.01633  
+ Mean   :4.998   Mean   : 0.126454   Mean   :-0.01641  
+ 3rd Qu.:5.225   3rd Qu.: 0.156694   3rd Qu.:-0.01201  
+ Max.   :5.983   Max.   : 0.264850   Max.   : 0.01418  
+    beta[4]            beta[5]            beta[6]       
+ Min.   :-0.08136   Min.   :-0.04821   Min.   :0.02226  
+ 1st Qu.: 0.13498   1st Qu.: 0.03841   1st Qu.:0.08335  
+ Median : 0.21473   Median : 0.06706   Median :0.10111  
+ Mean   : 0.21545   Mean   : 0.06721   Mean   :0.10102  
+ 3rd Qu.: 0.29006   3rd Qu.: 0.09493   3rd Qu.:0.11825  
+ Max.   : 0.55339   Max.   : 0.20887   Max.   :0.20054  
+    sigma_a          sigma_b           rho_ab         
+ Min.   :0.8702   Min.   :0.6404   Min.   :-0.163310  
+ 1st Qu.:0.9507   1st Qu.:0.6993   1st Qu.:-0.042641  
+ Median :0.9742   Median :0.7179   Median :-0.007716  
+ Mean   :0.9745   Mean   :0.7200   Mean   :-0.007433  
+ 3rd Qu.:0.9972   3rd Qu.:0.7407   3rd Qu.: 0.028149  
+ Max.   :1.0858   Max.   :0.8203   Max.   : 0.191743  
+    sigma_e          rho_e             lp__      
+ Min.   :1.328   Min.   :0.1534   Min.   :-6756  
+ 1st Qu.:1.360   1st Qu.:0.1969   1st Qu.:-6689  
+ Median :1.368   Median :0.2093   Median :-6670  
+ Mean   :1.368   Mean   :0.2082   Mean   :-6672  
+ 3rd Qu.:1.377   3rd Qu.:0.2194   3rd Qu.:-6653  
+ Max.   :1.406   Max.   :0.2665   Max.   :-6595  
