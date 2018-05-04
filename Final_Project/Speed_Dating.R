@@ -29,17 +29,18 @@ stanDat <- list(N = N, J = max_code, p = p, nr = nr, rowj = code_i, colj = code_
 # Use Stan for estimation
 sfit <- stan(file = "sheng1.stan", data=stanDat, iter=1000, chains = 2)
 
-
+# Prepare for plotting
 s <- mcmc.list(lapply(1:ncol(sfit), function(x) mcmc(as.array(sfit)[,x,])))
 S <- ggs(s[,1:6])
+                      
+# Plot the results                      
 ggs_histogram(S)
 ggs_traceplot(S)
 ggs_density(S)
 ggs_compare_partial(S)
 ggs_running(S)
 ggs_autocorrelation(S)
-
-
+                      
 sink("sfit.txt")
 print(sfit)
 sink()
@@ -49,6 +50,7 @@ Fit <- rstan::extract(sfit)
 print(Fit)
 sink()
 
+# Show and save the estimated parameters                      
 dfsfit <- as.data.frame(sfit)
 print(colnames(dfsfit))
 
@@ -57,6 +59,7 @@ summary(dfsfit[,1:6])
 summary(dfsfit[,1111:1116])
 sink()
 
+# Investigate reciprocity effects                      
 alpha <- colMeans(dfsfit[,7:558])
 alpha
 beta <- colMeans(dfsfit[,559:1110])
@@ -68,7 +71,7 @@ cor(alpha,beta)
 
 
 
-
+# Save the results
 save(print(sfit), file="sfit.txt", ascii = T, list = character())
 save(Fit, file="Fit.txt", ascii = T)
 
